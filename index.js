@@ -30,10 +30,14 @@ console.log('örnek görev:', ilkiniDon(['as','sa'],function(metin){return metin
   Aşağıdaki skor1 ve skor2 kodlarını inceleyiniz ve aşağıdaki soruları altına not alarak cevaplayın
   
   1. skor1 ve skor2 arasındaki fark nedir?
-  
+  skor1 bir iç içe geçmiş fonksiyondur(nested function). skor değişkeni fonksiyonun içerisinde saklanmaktadır, bu sayede dışardan skor değişkenine yetkisiz erişimi engellemektedir. skor2 ise standart bir fonksiyondur. Değişken fonksiyonun dışında olup, yetkisiz erişime müsaittir.
+
   2. Hangisi bir closure kullanmaktadır? Nasıl tarif edebilirsin? (yarınki derste öğreneceksin :) )
-  
+  skor1 closure kullanmaktadır. skorArtirici fonksiyonunun scope'u dışında bir skor değişkeni tanımlanmış olsa bile, skorGuncelle fonksiyonu parent scope'undaki skor değişkenini baz alacaktır.
+
   3. Hangi durumda skor1 tercih edilebilir? Hangi durumda skor2 daha mantıklıdır?
+  Güvenlik gereği erişilmesi riskli olan - erişilmemesi gereken verileri skor1'de kullanılan yöntem ile saklamak daha mantıklıdır. Bunun dışında, dosya içerisindeki herhangi bir yerden erişilmesi gereken, tekrar yazılması zor veya mümkün olmayan verileri skor2'deki yöntemle tanımlamak ve kullanmak daha mantıklı olabilir.
+
 */
 
 // skor1 kodları
@@ -64,8 +68,9 @@ Aşağıdaki takimSkoru() fonksiyonununda aşağıdakileri yapınız:
 Not: Bu fonskiyon, aşağıdaki diğer görevler için de bir callback fonksiyonu olarak da kullanılacak
 */
 
-function takimSkoru(/*Kodunuzu buraya yazınız*/){
-    /*Kodunuzu buraya yazınız*/
+function takimSkoru(){
+  let score = Math.floor(Math.random() * 16) + 10;
+  return score;
 }
 
 
@@ -86,8 +91,18 @@ Aşağıdaki macSonucu() fonksiyonununda aşağıdakileri yapınız:
 }
 */ 
 
-function macSonucu(/*Kodunuzu buraya yazınız*/){
-  /*Kodunuzu buraya yazınız*/
+function macSonucu(callback, qrtrCount){
+  let scores = {
+    "EvSahibi": 0,
+    "KonukTakim": 0
+  };
+
+  for(let i = 0; i < qrtrCount; i++){
+    let score1 = callback(), score2 = callback();
+    scores["EvSahibi"]+= score1;
+    scores["KonukTakim"]+= score2;
+  }
+  return scores;
 }
 
 
@@ -109,9 +124,12 @@ Aşağıdaki periyotSkoru() fonksiyonununda aşağıdakileri yapınız:
   */
 
 
-function periyotSkoru(/*Kodunuzu buraya yazınız*/) {
-  /*Kodunuzu buraya yazınız*/
-
+function periyotSkoru(callback) {
+  let scores = {
+    "EvSahibi": callback(),
+    "KonukTakim": callback()
+  };
+  return scores;
 }
 
 
@@ -146,10 +164,30 @@ MAÇ UZAR ise skorTabelasi(periyotSkoru,takimSkoru,4)
 ] */
 // NOTE: Bununla ilgili bir test yoktur. Eğer logladığınız sonuçlar yukarıdakine benziyor ise tmamlandı sayabilirsiniz.
 
-function skorTabelasi(/*Kodunuzu buraya yazınız*/) {
-  /*Kodunuzu buraya yazınız*/
+function skorTabelasi(periodScore, teamScore, qrtrCount) {
+  let scoreBoard = [], homeTotal = 0, visitorTotal = 0, overTime = 0;
+
+  for(let i = 0; i < qrtrCount; i++){
+    let pScore = periodScore(teamScore);
+    homeTotal+= pScore.EvSahibi;
+    visitorTotal+= pScore.KonukTakim;
+    scoreBoard.push(`${i+1}. Periyot: Ev Sahibi ${pScore.EvSahibi} - Konuk Takım ${pScore.KonukTakim}`)
+  }
+  
+  while(homeTotal === visitorTotal){
+    let pScore = periodScore(teamScore);
+    overTime++;
+    homeTotal+= pScore.EvSahibi;
+    visitorTotal+= pScore.KonukTakim;
+    scoreBoard.push(`${overTime}. Uzatma: Ev Sahibi ${pScore.EvSahibi} - Konuk Takım ${pScore.KonukTakim}`)
+  }
+
+  scoreBoard.push(`Maç Sonucu: Ev Sahibi ${homeTotal} - Konuk Takım ${visitorTotal}`);
+
+  return scoreBoard;
 }
 
+console.log(skorTabelasi(periyotSkoru,takimSkoru,4));
 
 
 
